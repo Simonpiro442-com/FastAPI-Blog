@@ -12,9 +12,9 @@ env:
 
 jobs:
    deploy:
-      runs_on: ubuntu-latest
+      runs-on: ubuntu-latest
 
-      step:
+      steps:
          - name: Checkout code 
            uses: actions/checkout@v4 
 
