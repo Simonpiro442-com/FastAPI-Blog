@@ -67,5 +67,5 @@ jobs:
                --deployment-group-name ${{ env.DEPLOYMENT_GROUP }} \
                --deployment-config-name CodeDeployDefault.OneAtATime \
                --description "Deployment from GitHub Actions - ${{ github.sha }}" \
-               --s3-location bucket=${{ secrets.DEPLOYMENT_S3_BUCKET }},key=deployment-package.zip,bundleType=zip \
+               --s3-location bucket=${{ secrets.DEPLOYMENT_S3_BUCKET }},key=${{ env.S3_KEY }},bundleType=zip \
                --file-exists-behavior OVERWRITE
