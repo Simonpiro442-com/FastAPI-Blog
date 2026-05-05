@@ -14,7 +14,6 @@ else
     exit 1
 fi
 
-# Pull the latest Docker image from ECR
 if [ -n "$IMAGE_URI" ]; then
     echo "Pulling Docker image: $IMAGE_URI"
     
