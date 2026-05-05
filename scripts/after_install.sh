@@ -4,7 +4,6 @@ set -e
 
 echo "Starting AfterInstall hook..."
 
-# Navigate to application directory
 cd /home/ec2-user/fastapi-app
 
 # Source environment variables from image_info file
