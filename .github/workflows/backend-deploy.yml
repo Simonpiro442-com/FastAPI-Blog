@@ -53,6 +53,12 @@ jobs:
              cd deployment-artifact
              zip -r ../deployment-package.zip .
              cd ..
+         
+         - name: Upload deployment package to S3
+           run: |
+             S3_KEY=deployment-${{ github.sha }}-${{ github.run_number }}.zip
+             aws s3 cp deployment-package.zip s3://${{ secrets.DEPLOYMENT_S3_BUCKET }}/$S3_KEY
+             echo "S3_KEY=$S3_KEY" >> $GITHUB_ENV
 
          - name: Deploy with CodeDeploy
            run: |
