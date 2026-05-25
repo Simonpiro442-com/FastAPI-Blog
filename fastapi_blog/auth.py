@@ -31,11 +31,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     encoded_jwt = jwt.encode(
         to_encode, settings.secret_key.get_secret_value(), settings.algorithm
     )
-    return (
-        encoded_jwt.decode()
-        if isinstance(encoded_jwt, bytes)
-        else encoded_jwt
-    )
+    return encoded_jwt.decode() if isinstance(encoded_jwt, bytes) else encoded_jwt
 
 
 def verify_access_token(token: str) -> str | None:
