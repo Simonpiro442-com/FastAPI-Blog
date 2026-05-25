@@ -35,7 +35,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def verify_access_token(token: str) -> dict | None:
-    """Verify JWT access token and return the subject (user ID) if valid, otherwise return None."""
+    """Verify JWT access token and
+    return the subject (user ID) if valid, otherwise return None."""
     try:
         payload = jwt.decode(
             token,
