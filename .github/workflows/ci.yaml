@@ -21,6 +21,7 @@ jobs:
         run: |
           pip install -r fastapi_blog/requirements.txt
           pip install pytest black flake8 mypy bandit
+          pip install sqlalchemy[mypy] types-PyJWT
 
 #      - name: Run tests
 #        run: pytest
