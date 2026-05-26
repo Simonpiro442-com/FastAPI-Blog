@@ -81,7 +81,6 @@ jobs:
             --region $AWS_REGION \
             --name $EKS_CLUSTER
 
-  
       - name: Install Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -104,9 +103,6 @@ jobs:
             --timeout 10m \
             --wait
 
-      # -----------------------------
-      # Verify Deployment
-      # -----------------------------
       - name: Verify Rollout
         run: |
           kubectl rollout status deployment/fastapi \
