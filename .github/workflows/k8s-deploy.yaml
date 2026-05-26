@@ -1,4 +1,4 @@
-name: Deploy to Production
+name: Deploy to Staging
 
 on:
   workflow_run:
@@ -37,7 +37,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
+          role-to-assume: arn:aws:iam::047631362165:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
 
       # -----------------------------
@@ -65,10 +65,10 @@ jobs:
 
           docker tag \
             $ECR_REPOSITORY:${{ steps.vars.outputs.tag }} \
-            123456789012.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:${{ steps.vars.outputs.tag }}
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:${{ steps.vars.outputs.tag }}
 
           docker push \
-            123456789012.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:${{ steps.vars.outputs.tag }}
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:${{ steps.vars.outputs.tag }}
 
       # -----------------------------
       # Configure kubectl
@@ -94,7 +94,7 @@ jobs:
           helm upgrade --install $HELM_RELEASE ./helm \
             --namespace $NAMESPACE \
             --create-namespace \
-            --set image.repository=123456789012.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY \
+            --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY \
             --set image.tag=${{ steps.vars.outputs.tag }} \
             --atomic \
             --timeout 10m \
