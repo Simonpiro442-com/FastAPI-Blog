@@ -23,9 +23,6 @@ jobs:
           pip install pytest black flake8 mypy bandit
           pip install sqlalchemy[mypy] types-PyJWT
 
-#      - name: Run tests
-#        run: pytest
-
       - name: Lint
         run: |
           black --check .
