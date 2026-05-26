@@ -52,7 +52,7 @@ jobs:
       - name: Generate Image Tag
         id: vars
         run: |
-          TAG=${GITHUB_SHA::12}
+          TAG=${GITHUB_SHA::12}-${GITHUB_RUN_NUMBER}
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       # -----------------------------
