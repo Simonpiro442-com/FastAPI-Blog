@@ -91,6 +91,10 @@ jobs:
         with:
           repository: Simonpiro442-com/staging-helmchart
           path: helm
+
+      - name: Debug Helm Templates
+        run: |
+          helm template $HELM_RELEASE ./helm
       
       - name: Helm Upgrade
         run: |
