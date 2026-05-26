@@ -91,6 +91,12 @@ jobs:
       # -----------------------------
       # Deploy using Helm
       # -----------------------------
+      - name: Checkout Helm Chart Repo
+        uses: actions/checkout@v4
+        with:
+          repository: Simonpiro442-com/staging-helmchart
+          path: helm
+      
       - name: Helm Upgrade
         run: |
           helm upgrade --install $HELM_RELEASE ./helm \
