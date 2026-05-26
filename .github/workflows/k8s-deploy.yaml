@@ -88,9 +88,7 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      # -----------------------------
-      # Deploy using Helm
-      # -----------------------------
+
       - name: Checkout Helm Chart Repo
         uses: actions/checkout@v4
         with:
