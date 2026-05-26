@@ -61,6 +61,7 @@ jobs:
       - name: Build & Push Image
         run: |
           docker build \
+            -f fastapi_blog/Dockerfile \
             -t $ECR_REPOSITORY:${{ steps.vars.outputs.tag }} .
 
           docker tag \
