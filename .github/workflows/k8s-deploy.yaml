@@ -55,9 +55,6 @@ jobs:
           TAG=${GITHUB_SHA::12}-${GITHUB_RUN_NUMBER}
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      # -----------------------------
-      # Build & Push Docker Image
-      # -----------------------------
       - name: Build & Push Image
         run: |
           docker build \
