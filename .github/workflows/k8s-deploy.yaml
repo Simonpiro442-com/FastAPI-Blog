@@ -103,6 +103,6 @@ jobs:
 
       - name: Verify Rollout
         run: |
-          kubectl rollout status deployment/fastapi \
+          kubectl rollout status deployment/atlas-api \
             -n $NAMESPACE \
             --timeout=300s
