@@ -46,9 +46,9 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # -----------------------------
+      # -------------------------------------------------------
       # Generate Image Tag
-      #-----------------------------
+      #------------------------------------------------------
      
       - name: Generate Image Tag
         id: vars
