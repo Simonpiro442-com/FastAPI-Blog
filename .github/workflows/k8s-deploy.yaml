@@ -1,108 +1,108 @@
-name: Deploy to Staging
+# name: Deploy to Staging
 
-on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
+# on:
+#   workflow_run:
+#     workflows: ["CI"]
+#     types:
+#       - completed
 
-concurrency:
-  group: prod-deploy
-  cancel-in-progress: false
+# concurrency:
+#   group: prod-deploy
+#   cancel-in-progress: false
 
-env:
-  AWS_REGION: us-east-1
-  EKS_CLUSTER: production-eks
-  ECR_REPOSITORY: fastapi-repo
-  HELM_RELEASE: fastapi
-  NAMESPACE: staging
+# env:
+#   AWS_REGION: us-east-1
+#   EKS_CLUSTER: production-eks
+#   ECR_REPOSITORY: fastapi-repo
+#   HELM_RELEASE: fastapi
+#   NAMESPACE: staging
 
-jobs:
-  deploy:
-    if: >
-      github.event.workflow_run.conclusion == 'success'
+# jobs:
+#   deploy:
+#     if: >
+#       github.event.workflow_run.conclusion == 'success'
 
-    runs-on: ubuntu-latest
+#     runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write
-      contents: read
+#     permissions:
+#       id-token: write
+#       contents: read
 
-    steps:
-      - uses: actions/checkout@v4
+#     steps:
+#       - uses: actions/checkout@v4
 
-      # ----------------------------------------------------------
-      # Configure AWS Authentication
-      # ----------------------------------------------------------
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::047631362165:role/FastAPI-Blog-github-actions-role
-          aws-region: ${{ env.AWS_REGION }}
+#       # ----------------------------------------------------------
+#       # Configure AWS Authentication
+#       # ----------------------------------------------------------
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: arn:aws:iam::047631362165:role/FastAPI-Blog-github-actions-role
+#           aws-region: ${{ env.AWS_REGION }}
 
-      # -------------------------------------------------------------
-      # Login to ECR
-      # -------------------------------------------------------------
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
+#       # -------------------------------------------------------------
+#       # Login to ECR
+#       # -------------------------------------------------------------
+#       - name: Login to ECR
+#         uses: aws-actions/amazon-ecr-login@v2
 
-      # ---------------------------------------------------------------
-      # Generate Image Tag
-      #---------------------------------------------------------------
+#       # ---------------------------------------------------------------
+#       # Generate Image Tag
+#       #---------------------------------------------------------------
      
-      - name: Generate Image Tag
-        id: vars
-        run: |
-          TAG=${GITHUB_SHA::12}-${GITHUB_RUN_NUMBER}
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+#       - name: Generate Image Tag
+#         id: vars
+#         run: |
+#           TAG=${GITHUB_SHA::12}-${GITHUB_RUN_NUMBER}
+#           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Build & Push Image
-        run: |
-          docker build \
-            -f fastapi_blog/Dockerfile \
-            -t $ECR_REPOSITORY:${{ steps.vars.outputs.tag }} \
-            ./fastapi_blog
+#       - name: Build & Push Image
+#         run: |
+#           docker build \
+#             -f fastapi_blog/Dockerfile \
+#             -t $ECR_REPOSITORY:${{ steps.vars.outputs.tag }} \
+#             ./fastapi_blog
 
-          docker tag \
-            $ECR_REPOSITORY:${{ steps.vars.outputs.tag }} \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:${{ steps.vars.outputs.tag }}
+#           docker tag \
+#             $ECR_REPOSITORY:${{ steps.vars.outputs.tag }} \
+#             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:${{ steps.vars.outputs.tag }}
 
-          docker push \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:${{ steps.vars.outputs.tag }}
+#           docker push \
+#             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:${{ steps.vars.outputs.tag }}
 
-      - name: Configure kubeconfig
-        run: |
-          aws eks update-kubeconfig \
-            --region $AWS_REGION \
-            --name $EKS_CLUSTER
+#       - name: Configure kubeconfig
+#         run: |
+#           aws eks update-kubeconfig \
+#             --region $AWS_REGION \
+#             --name $EKS_CLUSTER
 
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+#       - name: Install Helm
+#         run: |
+#           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 
-      - name: Checkout Helm Chart Repo
-        uses: actions/checkout@v4
-        with:
-          repository: Simonpiro442-com/staging-helmchart
-          path: helm
+#       - name: Checkout Helm Chart Repo
+#         uses: actions/checkout@v4
+#         with:
+#           repository: Simonpiro442-com/staging-helmchart
+#           path: helm
 
-      - name: Debug Helm Templates
-        run: |
-          helm template $HELM_RELEASE ./helm
+#       - name: Debug Helm Templates
+#         run: |
+#           helm template $HELM_RELEASE ./helm
       
-      - name: Helm Upgrade
-        run: |
-          helm upgrade --install $HELM_RELEASE ./helm \
-            --namespace $NAMESPACE \
-            --create-namespace \
-            --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY \
-            --set image.tag=${{ steps.vars.outputs.tag }} \
-            --timeout 10m \
-            --wait
+#       - name: Helm Upgrade
+#         run: |
+#           helm upgrade --install $HELM_RELEASE ./helm \
+#             --namespace $NAMESPACE \
+#             --create-namespace \
+#             --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY \
+#             --set image.tag=${{ steps.vars.outputs.tag }} \
+#             --timeout 10m \
+#             --wait
 
-      - name: Verify Rollout
-        run: |
-          kubectl rollout status deployment/atlas-api \
-            -n $NAMESPACE \
-            --timeout=300s
+#       - name: Verify Rollout
+#         run: |
+#           kubectl rollout status deployment/atlas-api \
+#             -n $NAMESPACE \
+#             --timeout=300s

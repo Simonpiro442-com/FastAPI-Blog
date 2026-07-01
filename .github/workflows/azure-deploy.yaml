@@ -1,0 +1,134 @@
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGISTRY: atlasapiacr.azurecr.io
+  IMAGE_NAME: fastapi-app
+
+  AKS_CLUSTER: prod-aks
+  AKS_RESOURCE_GROUP: instances
+
+  NAMESPACE: atlas-apps
+
+  RELEASE_NAME: atlas-api
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    ########################################################
+    # Checkout
+    ########################################################
+
+    - uses: actions/checkout@v4
+
+    ########################################################
+    # Azure Login
+    ########################################################
+
+    - uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    ########################################################
+    # Login to ACR
+    ########################################################
+
+    - name: Login to ACR
+      run: |
+        az acr login --name atlasapiacr
+
+    ########################################################
+    # Build Image
+    ########################################################
+
+    - name: Build Docker Image
+      run: |
+        docker build \
+          -t $REGISTRY/$IMAGE_NAME:${{ github.sha }} \
+          -t $REGISTRY/$IMAGE_NAME:latest .
+
+    ########################################################
+    # Push Image
+    ########################################################
+
+    - name: Push Image
+      run: |
+        docker push $REGISTRY/$IMAGE_NAME:${{ github.sha }}
+        docker push $REGISTRY/$IMAGE_NAME:latest
+
+    ########################################################
+    # Configure kubectl
+    ########################################################
+
+    - name: Get AKS Credentials
+      run: |
+        az aks get-credentials \
+          --resource-group $AKS_RESOURCE_GROUP \
+          --name $AKS_CLUSTER \
+          --overwrite-existing
+
+    ########################################################
+    # Install Helm
+    ########################################################
+
+    - name: Install Helm
+      uses: azure/setup-helm@v4
+
+    - name: Checkout Helm Chart Repo
+      uses: actions/checkout@v4
+      with:
+        repository: Simonpiro442-com/azure-helm-chart/fastapi
+        path: helm
+
+    - name: Debug Helm Templates
+      run: |
+        helm template $HELM_RELEASE ./helm
+
+    ########################################################
+    # Lint Helm Chart
+    ########################################################
+
+    - name: Helm Lint
+      run: |
+        helm lint ./helm
+
+    ########################################################
+    # Deploy
+    ########################################################
+
+    - name: Helm Upgrade
+      run: |
+        helm upgrade \
+          --install $RELEASE_NAME ./helm \
+          --namespace $NAMESPACE \
+          --create-namespace \
+          --set image.repository=$REGISTRY/$IMAGE_NAME \
+          --set image.tag=${{ github.sha }} \
+          --wait \
+          --atomic \
+          --timeout 10m
+
+    ########################################################
+    # Verify
+    ########################################################
+
+    - name: Verify Rollout
+      run: |
+        kubectl rollout status deployment/$RELEASE_NAME \
+          -n $NAMESPACE \
+          --timeout=300s

@@ -1,69 +1,69 @@
-name: CI/CD to EC2 via CodeDeploy
+# name: CI/CD to EC2 via CodeDeploy
 
-on:
-  workflow_dispatch:
+# on:
+#   workflow_dispatch:
 
-env: 
-   AWS_REGION: us-east-1
-   ECR_REPOSITORY: fastapi-repo
-   IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
-   DEPLOYMENT_GROUP: fastapi-production
-   APPLICATION_NAME: fastapi-blog
+# env: 
+#    AWS_REGION: us-east-1
+#    ECR_REPOSITORY: fastapi-repo
+#    IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
+#    DEPLOYMENT_GROUP: fastapi-production
+#    APPLICATION_NAME: fastapi-blog
 
-jobs:
-   deploy:
-      runs-on: ubuntu-latest
+# jobs:
+#    deploy:
+#       runs-on: ubuntu-latest
 
-      steps:
-         - name: Checkout code 
-           uses: actions/checkout@v4 
+#       steps:
+#          - name: Checkout code 
+#            uses: actions/checkout@v4 
 
-         - name: Configure AWS credentials 
-           uses: aws-actions/configure-aws-credentials@v4
-           with:
-              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-              aws-region: ${{ env.AWS_REGION }}
+#          - name: Configure AWS credentials 
+#            uses: aws-actions/configure-aws-credentials@v4
+#            with:
+#               aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#               aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#               aws-region: ${{ env.AWS_REGION }}
           
-         - name: Login to ECR
-           id: login-ecr 
-           uses: aws-actions/amazon-ecr-login@v2
+#          - name: Login to ECR
+#            id: login-ecr 
+#            uses: aws-actions/amazon-ecr-login@v2
          
-         - name: Build and push Docker image 
-           run: |
-             IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-             docker build -t $IMAGE_URI ./fastapi_blog 
-             docker push $IMAGE_URI
-             echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+#          - name: Build and push Docker image 
+#            run: |
+#              IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+#              docker build -t $IMAGE_URI ./fastapi_blog 
+#              docker push $IMAGE_URI
+#              echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-         - name: Create deployment artifact
-           run: |
-             mkdir -p deployment-artifact
-             cp -r scripts deployment-artifact/
-             cp appspec.yml deployment-artifact/
+#          - name: Create deployment artifact
+#            run: |
+#              mkdir -p deployment-artifact
+#              cp -r scripts deployment-artifact/
+#              cp appspec.yml deployment-artifact/
              
-             # Create a file with the image URI
-             echo "IMAGE_URI=${{ env.IMAGE_URI }}" > deployment-artifact/image_info
-             echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> deployment-artifact/image_info
-             echo "AWS_REGION=${{ env.AWS_REGION }}" >> deployment-artifact/image_info
+#              # Create a file with the image URI
+#              echo "IMAGE_URI=${{ env.IMAGE_URI }}" > deployment-artifact/image_info
+#              echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> deployment-artifact/image_info
+#              echo "AWS_REGION=${{ env.AWS_REGION }}" >> deployment-artifact/image_info
              
-             # Zip the deployment package
-             cd deployment-artifact
-             zip -r ../deployment-package.zip .
-             cd ..
+#              # Zip the deployment package
+#              cd deployment-artifact
+#              zip -r ../deployment-package.zip .
+#              cd ..
          
-         - name: Upload deployment package to S3
-           run: |
-             S3_KEY=deployment-${{ github.sha }}-${{ github.run_number }}.zip
-             aws s3 cp deployment-package.zip s3://${{ secrets.DEPLOYMENT_S3_BUCKET }}/$S3_KEY
-             echo "S3_KEY=$S3_KEY" >> $GITHUB_ENV
+#          - name: Upload deployment package to S3
+#            run: |
+#              S3_KEY=deployment-${{ github.sha }}-${{ github.run_number }}.zip
+#              aws s3 cp deployment-package.zip s3://${{ secrets.DEPLOYMENT_S3_BUCKET }}/$S3_KEY
+#              echo "S3_KEY=$S3_KEY" >> $GITHUB_ENV
 
-         - name: Deploy with CodeDeploy
-           run: |
-             aws deploy create-deployment \
-               --application-name ${{ env.APPLICATION_NAME }} \
-               --deployment-group-name ${{ env.DEPLOYMENT_GROUP }} \
-               --deployment-config-name CodeDeployDefault.OneAtATime \
-               --description "Deployment from GitHub Actions - ${{ github.sha }}" \
-               --s3-location bucket=${{ secrets.DEPLOYMENT_S3_BUCKET }},key=${{ env.S3_KEY }},bundleType=zip \
-               --file-exists-behavior OVERWRITE
+#          - name: Deploy with CodeDeploy
+#            run: |
+#              aws deploy create-deployment \
+#                --application-name ${{ env.APPLICATION_NAME }} \
+#                --deployment-group-name ${{ env.DEPLOYMENT_GROUP }} \
+#                --deployment-config-name CodeDeployDefault.OneAtATime \
+#                --description "Deployment from GitHub Actions - ${{ github.sha }}" \
+#                --s3-location bucket=${{ secrets.DEPLOYMENT_S3_BUCKET }},key=${{ env.S3_KEY }},bundleType=zip \
+#                --file-exists-behavior OVERWRITE
