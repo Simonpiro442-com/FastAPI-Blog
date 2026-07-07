@@ -59,6 +59,7 @@ jobs:
     - name: Build Docker Image
       run: |
         docker build \
+          -f fastapi_blog/Dockerfile \
           -t $REGISTRY/$IMAGE_NAME:${{ github.sha }} \
           -t $REGISTRY/$IMAGE_NAME:latest .
 
