@@ -50,9 +50,9 @@ async def get_posts(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_post(
-    post: PostCreate, 
-    current_user: CurrentUser, 
-    db: Annotated[AsyncSession, Depends(get_db)]
+    post: PostCreate,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     new_post = models.Post(
         title=post.title,
@@ -82,7 +82,7 @@ async def get_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
 async def update_post_full(
     post_id: int,
     post_data: PostCreate,
-    current_user: CurrentUser, 
+    current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     result = await db.execute(select(models.Post).where(models.Post.id == post_id))
@@ -92,16 +92,15 @@ async def update_post_full(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Post not found",
         )
-    
-    if post.user_id != current_user.id: 
+
+    if post.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this post",    
+            detail="Not authorized to update this post",
         )
 
     post.title = post_data.title
     post.content = post_data.content
-
 
     await db.commit()
     await db.refresh(post, attribute_names=["author"])
@@ -122,11 +121,11 @@ async def update_post_partial(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Post not found",
         )
-    
-    if post.user_id != current_user.id: 
+
+    if post.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this post",    
+            detail="Not authorized to update this post",
         )
 
     update_data = post_data.model_dump(exclude_unset=True)
@@ -140,11 +139,10 @@ async def update_post_partial(
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(
-    post_id: int, 
-    current_user: CurrentUser, 
-    db: Annotated[AsyncSession, 
-    Depends(get_db)]
-    ):
+    post_id: int,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
     result = await db.execute(select(models.Post).where(models.Post.id == post_id))
     post = result.scalars().first()
     if not post:

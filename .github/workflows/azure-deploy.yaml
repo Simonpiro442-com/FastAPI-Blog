@@ -96,7 +96,7 @@ jobs:
     - name: Checkout Helm Chart Repo
       uses: actions/checkout@v4
       with:
-        repository: Simonpiro442-com/azure-helm-chart/fastapi
+        repository: Simonpiro442-com/azure-helm-chart
         path: helm
 
     - name: Debug Helm Templates

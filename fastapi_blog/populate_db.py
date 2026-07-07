@@ -363,9 +363,11 @@ async def populate() -> None:
             response.raise_for_status()
             title = post_data["title"]
             print(
-                f"  Created: '{title[:50]}...'"
-                if len(title) > 50
-                else f"  Created: '{title}'",
+                (
+                    f"  Created: '{title[:50]}...'"
+                    if len(title) > 50
+                    else f"  Created: '{title}'"
+                ),
             )
 
         print("\nUpdating post dates...")
