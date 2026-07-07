@@ -101,7 +101,7 @@ jobs:
 
     - name: Debug Helm Templates
       run: |
-        helm template $HELM_RELEASE ./helm
+        helm template $RELEASE_NAME ./helm/fastapi
 
     ########################################################
     # Lint Helm Chart
@@ -109,7 +109,7 @@ jobs:
 
     - name: Helm Lint
       run: |
-        helm lint ./helm
+        helm lint ./helm/fastapi
 
     ########################################################
     # Deploy
@@ -118,7 +118,7 @@ jobs:
     - name: Helm Upgrade
       run: |
         helm upgrade \
-          --install $RELEASE_NAME ./helm \
+          --install $RELEASE_NAME ./helm/fastapi \
           --namespace $NAMESPACE \
           --create-namespace \
           --set image.repository=$REGISTRY/$IMAGE_NAME \
