@@ -234,9 +234,10 @@ async def upload_profile_picture(
     content = await file.read()
 
     if len(content) > settings.max_upload_size_bytes:
+        max_size_mb = settings.max_upload_size_bytes // (1024 * 1024)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File too large. Maximum size is {settings.max_upload_size_bytes // (1024 * 1024)}MB",
+            detail=f"File too large. Maximum size is {max_size_mb}MB",
         )
 
     try:
@@ -244,7 +245,10 @@ async def upload_profile_picture(
     except UnidentifiedImageError as err:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid image file. Please upload a valid image (JPEG, PNG, GIF, WebP).",
+            detail=(
+               "Invalid image file. Please upload a valid image "
+               "(JPEG, PNG, GIF, WebP)."
+            ),
         ) from err
 
     old_filename = current_user.image_file
