@@ -1,0 +1,19 @@
+name: Test Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  hello:
+
+    runs-on: self-hosted
+
+    steps:
+
+      - run: hostname
+
+      - run: pwd
+
+      - run: whoami
+
+      - run: ls
